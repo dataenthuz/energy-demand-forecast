@@ -4,14 +4,24 @@ Predicting hourly electricity demand using time series models. Started with naiv
 
 ## Dataset
 
-PJM Hourly Energy Consumption data from Kaggle - years of hourly load data from a US grid operator. Real data with seasonality, weather effects, and holidays baked in.
+PJM Hourly Energy Consumption (PJME region) from Kaggle - 145k+ hourly readings from 2002 to 2018.
 
-## Models
+Get the data:
 
-- **Naive baseline** - previous week's same hour (surprisingly hard to beat)
-- **Linear regression** - with hour, day-of-week, month as features
-- **XGBoost / LightGBM** - with lag features (24h, 48h, 168h), rolling stats, and calendar variables
-- **Prophet** - Facebook's time series library, good for catching seasonality out of the box
+```bash
+# one-time setup: put kaggle.json in ~/.kaggle/ (kaggle.com > Account > API > Create New Token)
+pip install kaggle
+python data/download.py
+```
+
+This downloads `PJME_hourly.csv` into the `data/` folder.
+
+## Models compared
+
+- Naive baseline - same hour last week (lag 168h)
+- Linear regression with calendar features
+- XGBoost
+- LightGBM
 
 LightGBM is winning so far on MAE. Prophet is close but takes way longer to tune.
 
@@ -20,22 +30,16 @@ LightGBM is winning so far on MAE. Prophet is close but takes way longer to tune
 The biggest gains came from adding:
 - Lag features at 24, 48, and 168 hours (same hour yesterday, day before, last week)
 - Rolling mean and std over 24h and 168h windows
-- Hour of day, day of week, month, is_weekend, is_holiday
+- Hour of day, day of week, month, is_weekend
 
-## Files
+## Run it
 
-```
-notebooks/
-  01_eda.ipynb           # demand patterns, seasonality decomposition
-  02_baseline.ipynb      # naive + linear models
-  03_tree_models.ipynb   # XGBoost and LightGBM
-  04_prophet.ipynb       # Prophet model
-src/
-  features.py            # lag features, rolling stats, calendar vars
-  evaluate.py            # MAE, RMSE, MAPE
-requirements.txt
+```bash
+pip install -r requirements.txt
+python data/download.py   # first time only
+python forecast.py
 ```
 
 ## Stack
 
-Python · pandas · LightGBM · XGBoost · Prophet · scikit-learn · matplotlib
+Python - pandas - LightGBM - XGBoost - scikit-learn - matplotlib - kaggle
