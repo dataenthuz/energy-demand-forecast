@@ -1,45 +1,67 @@
 # energy-demand-forecast
 
-Predicting hourly electricity demand using time series models. Started with naive baselines and worked up to LightGBM with lag features and calendar variables.
+Predicting hourly electricity demand for the PJM grid using time series feature engineering and gradient boosting models.
 
 ## Dataset
 
-PJM Hourly Energy Consumption (PJME region) from Kaggle - 145k+ hourly readings from 2002 to 2018.
+PJM Hourly Energy Consumption from Kaggle - PJME region, ~145,000 hourly readings from 2002 to 2018.
 
-Get the data:
+## Get the data
 
 ```bash
-# one-time setup: put kaggle.json in ~/.kaggle/ (kaggle.com > Account > API > Create New Token)
+# one-time setup: put kaggle.json in ~/.kaggle/ (kaggle.com > Account > Settings > API > Create New Token)
 pip install kaggle
 python data/download.py
 ```
 
 This downloads `PJME_hourly.csv` into the `data/` folder.
 
-## Models compared
+## Approach
 
-- Naive baseline - same hour last week (lag 168h)
-- Linear regression with calendar features
-- XGBoost
-- LightGBM
+Standard time series features: hour of day, day of week, month, quarter, is_weekend.
 
-LightGBM is winning so far on MAE. Prophet is close but takes way longer to tune.
+Lag features: same hour 24h ago, 48h ago, 168h ago (same hour last week).
 
-## Feature engineering
+Rolling stats: 24h mean/std, 168h mean.
 
-The biggest gains came from adding:
-- Lag features at 24, 48, and 168 hours (same hour yesterday, day before, last week)
-- Rolling mean and std over 24h and 168h windows
-- Hour of day, day of week, month, is_weekend
+Models compared: naive baseline, linear regression, XGBoost, LightGBM.
+
+Train on data before 2017, test on 2017 and beyond.
 
 ## Run it
 
 ```bash
 pip install -r requirements.txt
-python data/download.py   # first time only
-python forecast.py
+python data/download.py       # first time only
+python forecast.py            # train all models, print results, save plots
 ```
+
+## Notebook
+
+Full walkthrough with plots and analysis: [`notebooks/analysis.ipynb`](notebooks/analysis.ipynb)
+
+```bash
+jupyter notebook notebooks/analysis.ipynb
+```
+
+## Files
+
+```
+data/
+  download.py           # fetches PJME_hourly.csv from Kaggle
+  PJME_hourly.csv       # gitignored
+notebooks/
+  analysis.ipynb        # EDA, feature engineering, model comparison
+forecast.py             # main script: feature engineering + all models + plots
+requirements.txt
+```
+
+## Outputs
+
+Running `forecast.py` saves:
+- `forecast_sample.png` - 2-week forecast vs actual (July 2017)
+- `feature_importance.png` - top features from LightGBM
 
 ## Stack
 
-Python - pandas - LightGBM - XGBoost - scikit-learn - matplotlib - kaggle
+Python - pandas - scikit-learn - XGBoost - LightGBM - matplotlib
